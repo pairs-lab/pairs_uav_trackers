@@ -1,0 +1,38 @@
+name: ros_package_build
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '**/README.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up ROS Noetic
+        uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: noetic
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y python3-catkin-tools python3-rosdep
+          rosdep update
+
+      - name: Build
+        run: |
+          source /opt/ros/noetic/setup.bash
+          mkdir -p ~/catkin_ws/src
+          cp -r . ~/catkin_ws/src/pairs_uav_trackers
+          cd ~/catkin_ws
+          rosdep install --from-paths src --ignore-src -r -y
+          catkin build pairs_uav_trackers
