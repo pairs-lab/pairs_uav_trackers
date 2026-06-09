@@ -1,0 +1,5 @@
+pairs_uav_trackers:
+
+  speed_tracker:
+
+    command_timeout: 1.0 # [s]

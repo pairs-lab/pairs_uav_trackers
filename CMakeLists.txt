@@ -1,125 +1,230 @@
 cmake_minimum_required(VERSION 3.5)
 project(pairs_uav_trackers)
 
-set(CMAKE_CXX_STANDARD 17)
+# set the correct standards
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_definitions(-Wall -Wextra)
+# 1 == use rclcpp::Timer implementation
+# 0 == use PAIRS's thread timer implementation
+set(USE_ROS_TIMER 0)
 
-if(COVERAGE)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+if(${USE_ROS_TIMER})
+  MESSAGE(WARNING "[pairs_uav_trackers]: Compiling with ROS Timers. This can cause high CPU load in runtime.")
 endif()
 
-set(CATKIN_DEPENDENCIES
-  cmake_modules
-  roscpp
-  rospy
-  geometry_msgs
-  tf
-  std_msgs
-  pairs_lib
+# set the compile options to show code warnings
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra)
+endif()
+
+if(ENABLE_COVERAGE)
+  message(WARNING "building for coverage, the performance might be limited")
+
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -fprofile-arcs")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs")
+
+  add_definitions("-O1")
+  add_definitions("-g")
+endif()
+
+set(DEPENDENCIES
+  rclcpp
+  rclcpp_components
   pairs_msgs
+  pairs_lib
+  pluginlib
+  geometry_msgs
+  sensor_msgs
   pairs_uav_managers
-  dynamic_reconfigure
-  pairs_uav_testing
-  )
-
-find_package(catkin REQUIRED COMPONENTS ${CATKIN_DEPENDENCIES})
-find_package(Eigen3 REQUIRED)
-set(Eigen_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS})
-set(Eigen_LIBRARIES ${EIGEN3_LIBRARIES})
-
-generate_dynamic_reconfigure_options(
-  cfg/mpc_tracker.cfg
-  cfg/flip_tracker.cfg
-  )
-
-# Detect architecture for pre-compiled MPC solver binary
-execute_process(COMMAND dpkg-architecture -qDEB_HOST_ARCH
-  OUTPUT_VARIABLE CMAKE_DEB_HOST_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-if(${CMAKE_DEB_HOST_ARCH} MATCHES "amd64|x64")
-  set(MPC_TRACKER_SOLVER_BIN
-    ${PROJECT_SOURCE_DIR}/lib/MpcTrackerSolver/x64/libMpcTrackerSolver.so)
-elseif(${CMAKE_DEB_HOST_ARCH} MATCHES "arm64")
-  set(MPC_TRACKER_SOLVER_BIN
-    ${PROJECT_SOURCE_DIR}/lib/MpcTrackerSolver/arm64/libMpcTrackerSolver.so)
-else()
-  message(FATAL_ERROR "MpcTrackerSolver.so not available for ${CMAKE_DEB_HOST_ARCH}")
-endif()
+  Eigen3
+  pairs_mpc_solvers
+)
 
 set(LIBRARIES
-  PairsUavTrackers_MpcTracker
-  PairsUavTrackers_LineTracker
   PairsUavTrackers_LandoffTracker
-  PairsUavTrackers_JoyTracker
-  PairsUavTrackers_SpeedTracker
-  PairsUavTrackers_FlipTracker
+  PairsUavTrackers_LineTracker
+  PairsUavTrackers_MpcTracker
   PairsUavTrackers_MidairActivationTracker
+  PairsUavTrackers_FlipTracker
   )
 
-catkin_package(
-  INCLUDE_DIRS include
-  CATKIN_DEPENDS ${CATKIN_DEPENDENCIES}
-  LIBRARIES ${LIBRARIES}
-  DEPENDS Eigen
+foreach(DEP IN LISTS DEPENDENCIES)
+  find_package(${DEP} REQUIRED)
+endforeach()
+
+include_directories(
+  include
+  ${rclcpp_INCLUDE_DIRS}
+  ${pairs_lib_INCLUDE_DIRS}
+  ${pairs_uav_managers_INCLUDE_DIRS}
+  ${pairs_mpc_solvers_INCLUDE_DIRS}
+)
+
+# Landoff Tracker
+
+add_library(PairsUavTrackers_LandoffTracker SHARED
+  src/landoff_tracker.cpp
   )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${Eigen_INCLUDE_DIRS})
+target_link_libraries(PairsUavTrackers_LandoffTracker
+  rclcpp::rclcpp
+  rclcpp_components::component
+  ${pairs_msgs_TARGETS}
+  pairs_lib::pairs_lib
+  pluginlib::pluginlib
+  ${geometry_msgs_TARGETS}
+  ${sensor_msgs_TARGETS}
+  pairs_uav_managers::pairs_uav_managers
+  Eigen3::Eigen
+  ${pairs_mpc_solvers_TARGETS}
+  )
 
-add_library(PairsUavTrackers_MpcTracker src/mpc_tracker/mpc_tracker.cpp)
-add_dependencies(PairsUavTrackers_MpcTracker
-  ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+target_compile_definitions(PairsUavTrackers_LandoffTracker PRIVATE USE_ROS_TIMER=${USE_ROS_TIMER})
+
+# Line Tracker
+
+add_library(PairsUavTrackers_LineTracker SHARED
+  src/line_tracker.cpp
+  )
+
+target_link_libraries(PairsUavTrackers_LineTracker
+  rclcpp::rclcpp
+  rclcpp_components::component
+  ${pairs_msgs_TARGETS}
+  pairs_lib::pairs_lib
+  pluginlib::pluginlib
+  ${geometry_msgs_TARGETS}
+  ${sensor_msgs_TARGETS}
+  pairs_uav_managers::pairs_uav_managers
+  Eigen3::Eigen
+  ${pairs_mpc_solvers_TARGETS}
+  )
+
+target_compile_definitions(PairsUavTrackers_LineTracker PRIVATE USE_ROS_TIMER=${USE_ROS_TIMER})
+
+# MPC Tracker
+
+add_library(PairsUavTrackers_MpcTracker SHARED
+  src/mpc_tracker.cpp
+  )
+
 target_link_libraries(PairsUavTrackers_MpcTracker
-  ${catkin_LIBRARIES} ${MPC_TRACKER_SOLVER_BIN})
+  rclcpp::rclcpp
+  rclcpp_components::component
+  ${pairs_msgs_TARGETS}
+  pairs_lib::pairs_lib
+  pluginlib::pluginlib
+  ${geometry_msgs_TARGETS}
+  ${sensor_msgs_TARGETS}
+  pairs_uav_managers::pairs_uav_managers
+  Eigen3::Eigen
+  ${pairs_mpc_solvers_TARGETS}
+  )
 
-add_library(PairsUavTrackers_LineTracker src/line_tracker/line_tracker.cpp)
-add_dependencies(PairsUavTrackers_LineTracker
-  ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-target_link_libraries(PairsUavTrackers_LineTracker ${catkin_LIBRARIES})
+target_link_libraries(PairsUavTrackers_MpcTracker
+  ${MPC_CONTROLLER_SOLVER_BIN}
+  )
 
-add_library(PairsUavTrackers_LandoffTracker src/landoff_tracker/landoff_tracker.cpp)
-add_dependencies(PairsUavTrackers_LandoffTracker
-  ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-target_link_libraries(PairsUavTrackers_LandoffTracker ${catkin_LIBRARIES})
+target_compile_definitions(PairsUavTrackers_MpcTracker PRIVATE USE_ROS_TIMER=${USE_ROS_TIMER})
 
-add_library(PairsUavTrackers_JoyTracker src/joy_tracker/joy_tracker.cpp)
-add_dependencies(PairsUavTrackers_JoyTracker
-  ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-target_link_libraries(PairsUavTrackers_JoyTracker ${catkin_LIBRARIES})
+# Midair Activation Tracker
 
-add_library(PairsUavTrackers_SpeedTracker src/speed_tracker/speed_tracker.cpp)
-add_dependencies(PairsUavTrackers_SpeedTracker
-  ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-target_link_libraries(PairsUavTrackers_SpeedTracker ${catkin_LIBRARIES})
+add_library(PairsUavTrackers_MidairActivationTracker SHARED
+  src/midair_activation_tracker.cpp
+  )
 
-add_library(PairsUavTrackers_FlipTracker src/flip_tracker/flip_tracker.cpp)
-add_dependencies(PairsUavTrackers_FlipTracker
-  ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-target_link_libraries(PairsUavTrackers_FlipTracker ${catkin_LIBRARIES})
+target_link_libraries(PairsUavTrackers_MidairActivationTracker
+  rclcpp::rclcpp
+  rclcpp_components::component
+  ${pairs_msgs_TARGETS}
+  pairs_lib::pairs_lib
+  pluginlib::pluginlib
+  ${geometry_msgs_TARGETS}
+  ${sensor_msgs_TARGETS}
+  pairs_uav_managers::pairs_uav_managers
+  Eigen3::Eigen
+  ${pairs_mpc_solvers_TARGETS}
+  )
 
-add_library(PairsUavTrackers_MidairActivationTracker
-  src/midair_activation_tracker/midair_activation_tracker.cpp)
-add_dependencies(PairsUavTrackers_MidairActivationTracker
-  ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-target_link_libraries(PairsUavTrackers_MidairActivationTracker ${catkin_LIBRARIES})
+target_compile_definitions(PairsUavTrackers_MidairActivationTracker PRIVATE USE_ROS_TIMER=${USE_ROS_TIMER})
 
-if(CATKIN_ENABLE_TESTING AND PAIRS_ENABLE_TESTING)
-  message(WARNING "Testing enabled.")
+# Flip Tracker
+
+add_library(PairsUavTrackers_FlipTracker SHARED
+  src/flip_tracker.cpp
+  )
+
+target_link_libraries(PairsUavTrackers_FlipTracker
+  rclcpp::rclcpp
+  rclcpp_components::component
+  ${pairs_msgs_TARGETS}
+  pairs_lib::pairs_lib
+  pluginlib::pluginlib
+  ${geometry_msgs_TARGETS}
+  ${sensor_msgs_TARGETS}
+  pairs_uav_managers::pairs_uav_managers
+  Eigen3::Eigen
+  ${pairs_mpc_solvers_TARGETS}
+  )
+
+target_compile_definitions(PairsUavTrackers_FlipTracker PRIVATE USE_ROS_TIMER=${USE_ROS_TIMER})
+
+## --------------------------------------------------------------
+## |                       export plugins                       |
+## --------------------------------------------------------------
+
+# <package of the base class>, <relative path to the xml>
+pluginlib_export_plugin_description_file(pairs_uav_managers plugins.xml)
+
+## --------------------------------------------------------------
+## |                           testing                          |
+## --------------------------------------------------------------
+
+if(ENABLE_TESTS)
+
   add_subdirectory(test)
+
 endif()
 
-install(TARGETS ${LIBRARIES}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-  )
+## --------------------------------------------------------------
+## |                           install                          |
+## --------------------------------------------------------------
 
-install(DIRECTORY config
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-  )
+ament_export_libraries(
+  ${LIBRARIES}
+)
 
-install(FILES plugins.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-  )
+install(
+  TARGETS ${LIBRARIES}
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY scripts
+  USE_SOURCE_PERMISSIONS
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+ament_export_include_directories(
+  include
+)
+
+ament_export_targets(
+  export_${PROJECT_NAME} HAS_LIBRARY_TARGET
+)
+
+ament_export_dependencies(
+  ${DEPENDENCIES}
+)
+
+ament_package()

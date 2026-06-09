@@ -1,0 +1,29 @@
+<library path="PairsUavTrackers_LandoffTracker">
+  <class type="pairs_uav_trackers::landoff_tracker::LandoffTracker" base_class_type="pairs_uav_managers::Tracker">
+    <description>LandoffTracker</description>
+  </class>
+</library>
+
+<library path="PairsUavTrackers_LineTracker">
+  <class type="pairs_uav_trackers::line_tracker::LineTracker" base_class_type="pairs_uav_managers::Tracker">
+    <description>LineTracker</description>
+  </class>
+</library>
+
+<library path="PairsUavTrackers_MpcTracker">
+  <class type="pairs_uav_trackers::mpc_tracker::MpcTracker" base_class_type="pairs_uav_managers::Tracker">
+    <description>MpcTracker</description>
+  </class>
+</library>
+
+<library path="PairsUavTrackers_MidairActivationTracker">
+  <class type="pairs_uav_trackers::midair_activation_tracker::MidairActivationTracker" base_class_type="pairs_uav_managers::Tracker">
+    <description>MidairActivationTracker</description>
+  </class>
+</library>
+
+<library path="PairsUavTrackers_FlipTracker">
+  <class type="pairs_uav_trackers::flip_tracker::FlipTracker" base_class_type="pairs_uav_managers::Tracker">
+    <description>FlipTracker</description>
+  </class>
+</library>

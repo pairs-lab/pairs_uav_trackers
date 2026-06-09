@@ -1,0 +1,27 @@
+# Local rosdep rules for PAIRS packages not in the public rosdep index (ROS jazzy).
+pairs_msgs:
+  ubuntu: [ros-jazzy-pairs-msgs]
+pairs_lib:
+  ubuntu: [ros-jazzy-pairs-lib]
+pairs_uav_hw_api:
+  ubuntu: [ros-jazzy-pairs-uav-hw-api]
+pairs_uav_managers:
+  ubuntu: [ros-jazzy-pairs-uav-managers]
+pairs_mpc_solvers:
+  ubuntu: [ros-jazzy-pairs-mpc-solvers]
+pairs_uav_controllers:
+  ubuntu: [ros-jazzy-pairs-uav-controllers]
+pairs_uav_trackers:
+  ubuntu: [ros-jazzy-pairs-uav-trackers]
+pairs_uav_state_estimators:
+  ubuntu: [ros-jazzy-pairs-uav-state-estimators]
+pairs_uav_trajectory_generation:
+  ubuntu: [ros-jazzy-pairs-uav-trajectory-generation]
+pairs_uav_autostart:
+  ubuntu: [ros-jazzy-pairs-uav-autostart]
+pairs_uav_status:
+  ubuntu: [ros-jazzy-pairs-uav-status]
+pairs_uav_testing:
+  ubuntu: [ros-jazzy-pairs-uav-testing]
+pairs_uav_gazebo_simulation:
+  ubuntu: [ros-jazzy-pairs-uav-gazebo-simulation]

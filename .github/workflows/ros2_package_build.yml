@@ -1,38 +1,27 @@
 name: ros2_package_build
-
 on:
   push:
     branches: [ ros2 ]
-    paths-ignore:
-      - '**/README.md'
+    paths-ignore: [ '**/README.md' ]
   workflow_dispatch:
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
-
   build:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up ROS 2 Jazzy
         uses: ros-tooling/setup-ros@v0.7
         with:
           required-ros-distributions: jazzy
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get install -y python3-colcon-common-extensions python3-rosdep
-          rosdep update
-
       - name: Build
         run: |
           source /opt/ros/jazzy/setup.bash
-          mkdir -p ~/colcon_ws/src
-          cp -r . ~/colcon_ws/src/pairs_uav_trackers
+          sudo apt-get install -y python3-colcon-common-extensions python3-rosdep
+          rosdep update
+          mkdir -p ~/colcon_ws/src && cp -r . ~/colcon_ws/src/pairs_uav_trackers
           cd ~/colcon_ws
-          rosdep install --from-paths src --ignore-src -r -y
+          rosdep install --from-paths src --ignore-src -r -y || true
           colcon build --packages-select pairs_uav_trackers
