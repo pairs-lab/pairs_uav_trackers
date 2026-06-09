@@ -5,7 +5,7 @@
   <version>1.0.0</version>
   <description>PAIRS UAV tracker plugins — MPC tracker, line tracker, landoff tracker, speed tracker, flip tracker</description>
 
-  <maintainer email="alex@dsc-labs.io">PAIRS Team</maintainer>
+  <maintainer email="canhthanh@vnu.edu.vn">Thanh Nguyen Canh</maintainer>
 
   <license>BSD 3-Clause</license>
 
