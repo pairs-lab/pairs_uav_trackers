@@ -1,0 +1,27 @@
+# Local rosdep rules for PAIRS packages not in the public rosdep index (ROS noetic).
+pairs_msgs:
+  ubuntu: [ros-noetic-pairs-msgs]
+pairs_lib:
+  ubuntu: [ros-noetic-pairs-lib]
+pairs_uav_hw_api:
+  ubuntu: [ros-noetic-pairs-uav-hw-api]
+pairs_uav_managers:
+  ubuntu: [ros-noetic-pairs-uav-managers]
+pairs_mpc_solvers:
+  ubuntu: [ros-noetic-pairs-mpc-solvers]
+pairs_uav_controllers:
+  ubuntu: [ros-noetic-pairs-uav-controllers]
+pairs_uav_trackers:
+  ubuntu: [ros-noetic-pairs-uav-trackers]
+pairs_uav_state_estimators:
+  ubuntu: [ros-noetic-pairs-uav-state-estimators]
+pairs_uav_trajectory_generation:
+  ubuntu: [ros-noetic-pairs-uav-trajectory-generation]
+pairs_uav_autostart:
+  ubuntu: [ros-noetic-pairs-uav-autostart]
+pairs_uav_status:
+  ubuntu: [ros-noetic-pairs-uav-status]
+pairs_uav_testing:
+  ubuntu: [ros-noetic-pairs-uav-testing]
+pairs_uav_gazebo_simulation:
+  ubuntu: [ros-noetic-pairs-uav-gazebo-simulation]
