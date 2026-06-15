@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <eigen3/Eigen/Eigen>
 
-namespace mrs_mpc_solvers
+namespace pairs_mpc_solvers
 {
 
 namespace mpc_tracker
@@ -35,6 +35,6 @@ private:
 
 }  // namespace mpc_tracker
 
-}  // namespace mrs_mpc_solvers
+}  // namespace pairs_mpc_solvers
 
 #endif
