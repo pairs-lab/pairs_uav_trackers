@@ -1,10 +1,11 @@
 #ifndef MPC_TRACKER_SOLVER
 #define MPC_TRACKER_SOLVER
 
-#include <ros/ros.h>
-#include <eigen3/Eigen/Eigen>
 
-namespace mrs_mpc_solvers
+#include <eigen3/Eigen/Eigen>
+#include "solver/solver.h"
+
+namespace pairs_mpc_solvers
 {
 
 namespace mpc_tracker
@@ -26,15 +27,17 @@ public:
   void   setDt(const double &dt);
 
 private:
-  static const int _horizon_len_ = 40;
-  int              _dim_;
-  std::string      _name_;
+  QPSolver qp_solver_;
+
+  const int   _horizon_len_ = 40;
+  int         _dim_;
+  std::string _name_;
 
   std::vector<double> myQ_;
 };
 
 }  // namespace mpc_tracker
 
-}  // namespace mrs_mpc_solvers
+}  // namespace pairs_mpc_solvers
 
 #endif

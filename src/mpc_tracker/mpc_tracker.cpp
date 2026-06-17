@@ -227,10 +227,10 @@ private:
 
   // | ----------------------- MPC solver ----------------------- |
 
-  std::shared_ptr<mrs_mpc_solvers::mpc_tracker::Solver> mpc_solver_y_;
-  std::shared_ptr<mrs_mpc_solvers::mpc_tracker::Solver> mpc_solver_x_;
-  std::shared_ptr<mrs_mpc_solvers::mpc_tracker::Solver> mpc_solver_z_;
-  std::shared_ptr<mrs_mpc_solvers::mpc_tracker::Solver> mpc_solver_heading_;
+  std::shared_ptr<pairs_mpc_solvers::mpc_tracker::Solver> mpc_solver_y_;
+  std::shared_ptr<pairs_mpc_solvers::mpc_tracker::Solver> mpc_solver_x_;
+  std::shared_ptr<pairs_mpc_solvers::mpc_tracker::Solver> mpc_solver_z_;
+  std::shared_ptr<pairs_mpc_solvers::mpc_tracker::Solver> mpc_solver_heading_;
 
   std::mutex mutex_mpc_calculation_;
 
@@ -520,11 +520,11 @@ bool MpcTracker::initialize(const ros::NodeHandle& nh, std::shared_ptr<pairs_uav
 
   ROS_INFO_STREAM("[MpcTracker]: initializing solvers with dt1 = " << dt1_);
 
-  mpc_solver_y_ = std::make_shared<mrs_mpc_solvers::mpc_tracker::Solver>("MpcTracker_y", verbose_xy, _max_iters_xy_, xy_Q, dt1_, _dt2_, 1);
-  mpc_solver_x_ = std::make_shared<mrs_mpc_solvers::mpc_tracker::Solver>("MpcTracker_x", verbose_xy, _max_iters_xy_, xy_Q, dt1_, _dt2_, 0);
-  mpc_solver_z_ = std::make_shared<mrs_mpc_solvers::mpc_tracker::Solver>("MpcTracker_z", verbose_z, _max_iters_z_, z_Q, dt1_, _dt2_, 2);
+  mpc_solver_y_ = std::make_shared<pairs_mpc_solvers::mpc_tracker::Solver>("MpcTracker_y", verbose_xy, _max_iters_xy_, xy_Q, dt1_, _dt2_, 1);
+  mpc_solver_x_ = std::make_shared<pairs_mpc_solvers::mpc_tracker::Solver>("MpcTracker_x", verbose_xy, _max_iters_xy_, xy_Q, dt1_, _dt2_, 0);
+  mpc_solver_z_ = std::make_shared<pairs_mpc_solvers::mpc_tracker::Solver>("MpcTracker_z", verbose_z, _max_iters_z_, z_Q, dt1_, _dt2_, 2);
   mpc_solver_heading_ =
-      std::make_shared<mrs_mpc_solvers::mpc_tracker::Solver>("MpcTracker_hdg", verbose_heading, _max_iters_heading_, heading_Q, dt1_, _dt2_, 0);
+      std::make_shared<pairs_mpc_solvers::mpc_tracker::Solver>("MpcTracker_hdg", verbose_heading, _max_iters_heading_, heading_Q, dt1_, _dt2_, 0);
 
   mpc_x_         = MatrixXd::Zero(MPC_N_STATES, 1);
   mpc_x_heading_ = MatrixXd::Zero(MPC_HEADING_N_STATES, 1);
